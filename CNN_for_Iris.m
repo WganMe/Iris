@@ -20,34 +20,34 @@ reset(gpuDevice(1));  % Reset GPU memory
     [x , y] = size(img);
     inputSize=[x y 1];
 %      imdsTrain=augmentedImageDatastore(inputSize, imdsTrain,'ColorPreprocessing','rgb2gray');
- I = imread(imdsTrain.Files{1});
-  [x , y] = size(I);
-        for i=1:size(imdsTrain.Files,1)
-            I = imread(imdsTrain.Files{i});
-            [a b c]=size(I);
-            if c>1
-            I = rgb2gray(I);
-            end
-            I = imresize(I, [x y]);
-            imwrite(I, imdsTrain.Files{i});
-        end
+%  I = imread(imdsTrain.Files{1});
+%   [x , y] = size(I);
+%         for i=1:size(imdsTrain.Files,1)
+%             I = imread(imdsTrain.Files{i});
+%             [a b c]=size(I);
+%             if c>1
+%             I = rgb2gray(I);
+%             end
+%             I = imresize(I, [x y]);
+%             imwrite(I, imdsTrain.Files{i});
+%         end
        
     
     
 %% Load Test Data
     imdsValidation = imageDatastore(fullfile(pwd,"TestData", categories),'IncludeSubfolders',true,'FileExtensions','.bmp','LabelSource','foldernames');
 %     imdsValidation = augmentedImageDatastore(inputSize, imdsValidation,'ColorPreprocessing','rgb2gray');
-       A = imread(imdsValidation.Files{1});
-      for i=1:size(imdsValidation.Files,1)
-            A = imread(imdsValidation.Files{i});
-            [a b c]=size(A);
-            if c>1
-            A = rgb2gray(A);
-            end
-            A = imresize(A, [x y]);
-            imwrite(A, imdsValidation.Files{i});
-          end
-      
+%        A = imread(imdsValidation.Files{1});
+%       for i=1:size(imdsValidation.Files,1)
+%             A = imread(imdsValidation.Files{i});
+%             [a b c]=size(A);
+%             if c>1
+%             A = rgb2gray(A);
+%             end
+%             A = imresize(A, [x y]);
+%             imwrite(A, imdsValidation.Files{i});
+%           end
+%       
     
 
 %% Calculate the number of images in each category. 
