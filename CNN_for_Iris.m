@@ -136,7 +136,7 @@ false=0;
     false=0;
 
   %%  start plotting mismatches
-    falsefig= figure('Name','All Mismatch Pictures','Visible','off','Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96])
+    falsefig = figure('Name','All Mismatch Pictures','Visible','off','Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96]);
 
     for i = 1:size(imdsValidation.Files,1)
         imf = imread(imdsValidation.Files{i});
@@ -155,11 +155,11 @@ false=0;
         end
     end
     
-    xlabel('ALL mismatch incidents')
-    saveas(falsefig,'All Mismatches.png')
-    movefile('All Mismatches.png','results')
+    xlabel('ALL mismatch incidents');
+    saveas(falsefig,'All Mismatches.png');
+    movefile('All Mismatches.png','results');
  %%   start plotting sample of correct match
-    truefig= figure('Name','Sample of Correct Match','Visible','off','Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96])
+    truefig = figure('Name','Sample of Correct Match','Visible','off','Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96]);
     
     true=0;
     false=0;
@@ -178,8 +178,8 @@ false=0;
                end
             end
         end
-        xlabel('Sample of Correct Incidents')
-        saveas(truefig,'Sample Matches.png')
-        movefile('Sample Matches.png','results')
+        xlabel('Sample of Correct Incidents');
+        saveas(truefig,'Sample Matches.png');
+        movefile('Sample Matches.png','results');
 
 
