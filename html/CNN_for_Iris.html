@@ -1,0 +1,645 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>CNN_for_Iris</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-17"><meta name="DC.source" content="CNN_for_Iris.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Load train Data</a></li><li><a href="#3">Size of first image in dataset</a></li><li><a href="#4">Load Test Data</a></li><li><a href="#5">Calculate the number of images in each category.</a></li><li><a href="#6">Define Network Architecture</a></li><li><a href="#7">Specify Training Options</a></li><li><a href="#8">Train Network Using Training Data</a></li><li><a href="#9">Classify validation</a></li><li><a href="#10">Compute Accuracy</a></li><li><a href="#11">move diary file</a></li><li><a href="#12"><b>Test one at a time</b></a></li><li><a href="#13">Find the square root of the false matches to determine the subplots</a></li><li><a href="#14">Recalbirating true and false</a></li><li><a href="#15">start plotting mismatches</a></li><li><a href="#16">start plotting sample of correct match</a></li></ul></div><pre class="codeinput"><span class="comment">%   Biometric Systems</span>
+<span class="comment">%   CYS616</span>
+<span class="comment">%   CONVOLUTIONAL NEURAL NETWORK FOR IRIS RECOGNITION</span>
+clc;    <span class="comment">% Clear the command window.</span>
+close <span class="string">all</span>;  <span class="comment">% Close all figures (except those of imtool.)</span>
+clear;  <span class="comment">% Erase all existing variables. Or clearvars if you want.</span>
+workspace;  <span class="comment">% Make sure the workspace panel is showing.</span>
+reset(gpuDevice);  <span class="comment">% Reset GPU memory</span>
+diary <span class="string">Progress.txt</span>
+diary <span class="string">on</span>
+</pre><h2 id="2">Load train Data</h2><pre class="codeinput">categories = {
+<span class="string">'001'</span>,<span class="string">'002'</span>,<span class="string">'003'</span>,<span class="string">'004'</span>,<span class="string">'005'</span>,<span class="string">'006'</span>,<span class="string">'007'</span>,<span class="string">'008'</span>,<span class="string">'009'</span>,<span class="string">'010'</span>, <span class="keyword">...</span>
+<span class="string">'011'</span>,<span class="string">'012'</span>,<span class="string">'013'</span>,<span class="string">'014'</span>,<span class="string">'015'</span>,<span class="string">'016'</span>,<span class="string">'017'</span>,<span class="string">'018'</span>,<span class="string">'019'</span>,<span class="string">'020'</span>, <span class="keyword">...</span>
+<span class="string">'021'</span>,<span class="string">'022'</span>,<span class="string">'023'</span>,<span class="string">'024'</span>,<span class="string">'025'</span>,<span class="string">'026'</span>,<span class="string">'027'</span>,<span class="string">'028'</span>,<span class="string">'029'</span>,<span class="string">'030'</span>, <span class="keyword">...</span>
+<span class="string">'031'</span>,<span class="string">'032'</span>,<span class="string">'033'</span>,<span class="string">'034'</span>,<span class="string">'035'</span>,<span class="string">'036'</span>,<span class="string">'037'</span>,<span class="string">'038'</span>,<span class="string">'039'</span>,<span class="string">'040'</span>, <span class="keyword">...</span>
+<span class="string">'041'</span>,<span class="string">'042'</span>,<span class="string">'043'</span>,<span class="string">'044'</span>,<span class="string">'045'</span>,<span class="string">'046'</span>,<span class="string">'047'</span>,<span class="string">'048'</span>,<span class="string">'049'</span>,<span class="string">'050'</span>, <span class="keyword">...</span>
+<span class="string">'051'</span>,<span class="string">'052'</span>,<span class="string">'053'</span>,<span class="string">'054'</span>,<span class="string">'055'</span>,<span class="string">'056'</span>,<span class="string">'057'</span>,<span class="string">'058'</span>,<span class="string">'059'</span>,<span class="string">'060'</span>, <span class="keyword">...</span>
+<span class="string">'061'</span>,<span class="string">'062'</span>,<span class="string">'063'</span>,<span class="string">'064'</span>,<span class="string">'065'</span>,<span class="string">'066'</span>,<span class="string">'067'</span>,<span class="string">'068'</span>,<span class="string">'069'</span>,<span class="string">'070'</span>, <span class="keyword">...</span>
+<span class="string">'071'</span>,<span class="string">'072'</span>,<span class="string">'073'</span>,<span class="string">'074'</span>,<span class="string">'075'</span>,<span class="string">'076'</span>,<span class="string">'077'</span>,<span class="string">'078'</span>,<span class="string">'079'</span>,<span class="string">'080'</span>, <span class="keyword">...</span>
+<span class="string">'081'</span>,<span class="string">'082'</span>,<span class="string">'083'</span>,<span class="string">'084'</span>,<span class="string">'085'</span>,<span class="string">'086'</span>,<span class="string">'087'</span>,<span class="string">'088'</span>,<span class="string">'089'</span>,<span class="string">'090'</span>, <span class="keyword">...</span>
+<span class="string">'091'</span>,<span class="string">'092'</span>,<span class="string">'093'</span>,<span class="string">'094'</span>,<span class="string">'095'</span>,<span class="string">'096'</span>,<span class="string">'097'</span>,<span class="string">'098'</span>,<span class="string">'099'</span>,<span class="string">'100'</span>, <span class="keyword">...</span>
+<span class="string">'101'</span>,<span class="string">'102'</span>,<span class="string">'103'</span>,<span class="string">'104'</span>,<span class="string">'105'</span>,<span class="string">'106'</span>,<span class="string">'107'</span>,<span class="string">'108'</span>,<span class="string">'109'</span>,<span class="string">'110'</span>, <span class="keyword">...</span>
+<span class="string">'111'</span>,<span class="string">'112'</span>,<span class="string">'113'</span>,<span class="string">'114'</span>,<span class="string">'115'</span>,<span class="string">'116'</span>,<span class="string">'117'</span>,<span class="string">'118'</span>,<span class="string">'119'</span>,<span class="string">'120'</span>, <span class="keyword">...</span>
+<span class="string">'121'</span>,<span class="string">'122'</span>,<span class="string">'123'</span>,<span class="string">'124'</span>,<span class="string">'125'</span>,<span class="string">'126'</span>,<span class="string">'127'</span>,<span class="string">'128'</span>,<span class="string">'129'</span>,<span class="string">'130'</span>, <span class="keyword">...</span>
+<span class="string">'131'</span>,<span class="string">'132'</span>,<span class="string">'133'</span>,<span class="string">'134'</span>,<span class="string">'135'</span>,<span class="string">'136'</span>,<span class="string">'137'</span>,<span class="string">'138'</span>,<span class="string">'139'</span>,<span class="string">'140'</span>, <span class="keyword">...</span>
+<span class="string">'141'</span>,<span class="string">'142'</span>,<span class="string">'143'</span>,<span class="string">'144'</span>,<span class="string">'145'</span>,<span class="string">'146'</span>,<span class="string">'147'</span>,<span class="string">'148'</span>,<span class="string">'149'</span>,<span class="string">'150'</span>, <span class="keyword">...</span>
+<span class="string">'151'</span>,<span class="string">'152'</span>,<span class="string">'153'</span>,<span class="string">'154'</span>,<span class="string">'155'</span>,<span class="string">'156'</span>,<span class="string">'157'</span>,<span class="string">'158'</span>,<span class="string">'159'</span>,<span class="string">'160'</span>, <span class="keyword">...</span>
+<span class="string">'161'</span>,<span class="string">'162'</span>,<span class="string">'163'</span>,<span class="string">'164'</span>,<span class="string">'165'</span>,<span class="string">'166'</span>,<span class="string">'167'</span>,<span class="string">'168'</span>,<span class="string">'169'</span>,<span class="string">'170'</span>, <span class="keyword">...</span>
+<span class="string">'171'</span>,<span class="string">'172'</span>,<span class="string">'173'</span>,<span class="string">'174'</span>,<span class="string">'175'</span>,<span class="string">'176'</span>,<span class="string">'177'</span>,<span class="string">'178'</span>,<span class="string">'179'</span>,<span class="string">'180'</span>, <span class="keyword">...</span>
+<span class="string">'181'</span>,<span class="string">'182'</span>,<span class="string">'183'</span>,<span class="string">'184'</span>,<span class="string">'185'</span>,<span class="string">'186'</span>,<span class="string">'187'</span>,<span class="string">'188'</span>,<span class="string">'189'</span>,<span class="string">'190'</span>, <span class="keyword">...</span>
+<span class="string">'191'</span>,<span class="string">'192'</span>,<span class="string">'193'</span>,<span class="string">'194'</span>,<span class="string">'195'</span>,<span class="string">'196'</span>,<span class="string">'197'</span>,<span class="string">'198'</span>,<span class="string">'199'</span>,<span class="string">'200'</span>, <span class="keyword">...</span>
+<span class="string">'201'</span>,<span class="string">'202'</span>,<span class="string">'203'</span>,<span class="string">'204'</span>,<span class="string">'205'</span>,<span class="string">'206'</span>,<span class="string">'207'</span>,<span class="string">'208'</span>,<span class="string">'209'</span>,<span class="string">'210'</span>, <span class="keyword">...</span>
+<span class="string">'211'</span>,<span class="string">'212'</span>,<span class="string">'213'</span>,<span class="string">'214'</span>,<span class="string">'215'</span>,<span class="string">'216'</span>,<span class="string">'217'</span>,<span class="string">'218'</span>,<span class="string">'219'</span>,<span class="string">'220'</span>, <span class="keyword">...</span>
+<span class="string">'221'</span>,<span class="string">'222'</span>,<span class="string">'223'</span>};
+
+    imdsTrain = imageDatastore(fullfile(pwd,<span class="string">'Dataset/TrainData'</span>, categories),<span class="string">'IncludeSubfolders'</span>,true,<span class="string">'FileExtensions'</span>,<span class="string">'.bmp'</span>,<span class="string">'LabelSource'</span>,<span class="string">'foldernames'</span>);
+num_train = size(imdsTrain.Files,1);
+</pre><h2 id="3">Size of first image in dataset</h2><pre class="codeinput">    img = readimage(imdsTrain,1);
+    [x , y , z] = size(img);
+</pre><h2 id="4">Load Test Data</h2><pre class="codeinput">    imdsValidation = imageDatastore(fullfile(pwd,<span class="string">'Dataset/TestData'</span>, categories),<span class="string">'IncludeSubfolders'</span>,true,<span class="string">'FileExtensions'</span>,<span class="string">'.bmp'</span>,<span class="string">'LabelSource'</span>,<span class="string">'foldernames'</span>);
+num_test = size(imdsValidation.Files,1);
+</pre><h2 id="5">Calculate the number of images in each category.</h2><pre class="codeinput">    labelCount = countEachLabel(imdsTrain);
+</pre><h2 id="6">Define Network Architecture</h2><pre class="codeinput">    layers = [
+
+    imageInputLayer([x y z]);
+
+    convolution2dLayer(3,8,<span class="string">'Padding'</span>,<span class="string">'same'</span>)
+    batchNormalizationLayer
+    reluLayer();
+
+    maxPooling2dLayer(5,<span class="string">'Stride'</span>,2)
+    convolution2dLayer(3,16,<span class="string">'Padding'</span>,<span class="string">'same'</span>)
+    batchNormalizationLayer
+    reluLayer();
+
+         averagePooling2dLayer(5,<span class="string">'Stride'</span>,2)
+    convolution2dLayer(3,16,<span class="string">'Padding'</span>,<span class="string">'same'</span>)
+    batchNormalizationLayer
+    reluLayer();
+
+    maxPooling2dLayer(5,<span class="string">'Stride'</span>,2)
+    convolution2dLayer(3,32,<span class="string">'Padding'</span>,<span class="string">'same'</span>)
+    batchNormalizationLayer
+    reluLayer();
+
+         averagePooling2dLayer(5,<span class="string">'Stride'</span>,2)
+    convolution2dLayer(3,32,<span class="string">'Padding'</span>,<span class="string">'same'</span>)
+    batchNormalizationLayer
+    reluLayer();
+
+
+    fullyConnectedLayer(size(categories,2),<span class="string">'BiasLearnRateFactor'</span>,2);
+    softmaxLayer
+    classificationLayer];
+</pre><h2 id="7">Specify Training Options</h2><pre class="codeinput">    options = trainingOptions(<span class="string">'sgdm'</span>, <span class="keyword">...</span>
+    <span class="string">'InitialLearnRate'</span>, 0.001, <span class="keyword">...</span>
+    <span class="string">'ValidationData'</span>,imdsValidation, <span class="keyword">...</span>
+    <span class="string">'ValidationFrequency'</span>,100, <span class="keyword">...</span>
+    <span class="string">'Shuffle'</span>,<span class="string">'every-epoch'</span>, <span class="keyword">...</span>
+    <span class="string">'MaxEpochs'</span>, 10, <span class="keyword">...</span>
+    <span class="string">'MiniBatchSize'</span>, 8, <span class="keyword">...</span>
+    <span class="string">'LearnRateSchedule'</span>,<span class="string">'piecewise'</span>, <span class="keyword">...</span>
+    <span class="string">'LearnRateDropFactor'</span>,0.5, <span class="keyword">...</span>
+    <span class="string">'LearnRateDropPeriod'</span>,50, <span class="keyword">...</span>
+    <span class="string">'ExecutionEnvironment'</span>,<span class="string">'gpu'</span>, <span class="keyword">...</span>
+    <span class="string">'Verbose'</span>, true, <span class="string">'VerboseFrequency'</span>, 10);
+</pre><h2 id="8">Train Network Using Training Data</h2><pre class="codeinput">    [net_Wael, info] = trainNetwork(imdsTrain,layers,options);
+save(<span class="string">'TrainedNetwork.mat'</span>,<span class="string">'net_Wael'</span>)
+movefile(<span class="string">'TrainedNetwork.mat'</span>,<span class="string">'results'</span>)
+</pre><pre class="codeoutput">Initializing input data normalization.
+|======================================================================================================================|
+|  Epoch  |  Iteration  |  Time Elapsed  |  Mini-batch  |  Validation  |  Mini-batch  |  Validation  |  Base Learning  |
+|         |             |   (hh:mm:ss)   |   Accuracy   |   Accuracy   |     Loss     |     Loss     |      Rate       |
+|======================================================================================================================|
+|       1 |           1 |       00:00:03 |        0.00% |        0.45% |       5.5118 |       5.8210 |          0.0010 |
+|       1 |          10 |       00:00:03 |        0.00% |              |       5.9799 |              |          0.0010 |
+|       1 |          20 |       00:00:04 |        0.00% |              |       6.0105 |              |          0.0010 |
+|       1 |          30 |       00:00:04 |        0.00% |              |       5.4696 |              |          0.0010 |
+|       1 |          40 |       00:00:05 |        0.00% |              |       5.7499 |              |          0.0010 |
+|       1 |          50 |       00:00:05 |       12.50% |              |       5.0474 |              |          0.0010 |
+|       1 |          60 |       00:00:06 |        0.00% |              |       5.8790 |              |          0.0010 |
+|       1 |          70 |       00:00:06 |       12.50% |              |       4.8367 |              |          0.0010 |
+|       1 |          80 |       00:00:07 |       12.50% |              |       5.3349 |              |          0.0010 |
+|       1 |          90 |       00:00:08 |       12.50% |              |       5.0981 |              |          0.0010 |
+|       1 |         100 |       00:00:10 |       12.50% |       17.94% |       5.5542 |       4.1933 |          0.0010 |
+|       1 |         110 |       00:00:11 |        0.00% |              |       4.8842 |              |          0.0010 |
+|       1 |         120 |       00:00:11 |       12.50% |              |       4.7025 |              |          0.0010 |
+|       1 |         130 |       00:00:12 |       25.00% |              |       4.7135 |              |          0.0010 |
+|       1 |         140 |       00:00:13 |       25.00% |              |       3.4015 |              |          0.0010 |
+|       1 |         150 |       00:00:13 |        0.00% |              |       4.5033 |              |          0.0010 |
+|       1 |         160 |       00:00:14 |       12.50% |              |       3.6983 |              |          0.0010 |
+|       1 |         170 |       00:00:14 |       25.00% |              |       3.4501 |              |          0.0010 |
+|       1 |         180 |       00:00:15 |       12.50% |              |       3.3074 |              |          0.0010 |
+|       1 |         190 |       00:00:15 |       37.50% |              |       2.6981 |              |          0.0010 |
+|       2 |         200 |       00:00:18 |       62.50% |       45.74% |       1.8480 |       2.4727 |          0.0010 |
+|       2 |         210 |       00:00:19 |       50.00% |              |       2.3924 |              |          0.0010 |
+|       2 |         220 |       00:00:19 |       87.50% |              |       1.6154 |              |          0.0010 |
+|       2 |         230 |       00:00:20 |       37.50% |              |       2.4778 |              |          0.0010 |
+|       2 |         240 |       00:00:20 |       62.50% |              |       1.7599 |              |          0.0010 |
+|       2 |         250 |       00:00:21 |       75.00% |              |       1.4714 |              |          0.0010 |
+|       2 |         260 |       00:00:21 |       25.00% |              |       2.3119 |              |          0.0010 |
+|       2 |         270 |       00:00:22 |       87.50% |              |       1.5776 |              |          0.0010 |
+|       2 |         280 |       00:00:22 |       75.00% |              |       1.3212 |              |          0.0010 |
+|       2 |         290 |       00:00:23 |       75.00% |              |       1.3649 |              |          0.0010 |
+|       2 |         300 |       00:00:26 |       75.00% |       70.70% |       1.7021 |       1.4225 |          0.0010 |
+|       2 |         310 |       00:00:26 |       50.00% |              |       1.4308 |              |          0.0010 |
+|       2 |         320 |       00:00:27 |       62.50% |              |       1.6235 |              |          0.0010 |
+|       2 |         330 |       00:00:27 |       87.50% |              |       1.0168 |              |          0.0010 |
+|       2 |         340 |       00:00:28 |      100.00% |              |       0.6517 |              |          0.0010 |
+|       2 |         350 |       00:00:29 |       87.50% |              |       0.7577 |              |          0.0010 |
+|       2 |         360 |       00:00:29 |       62.50% |              |       1.0941 |              |          0.0010 |
+|       2 |         370 |       00:00:30 |      100.00% |              |       0.4691 |              |          0.0010 |
+|       2 |         380 |       00:00:30 |       87.50% |              |       0.8024 |              |          0.0010 |
+|       2 |         390 |       00:00:31 |       75.00% |              |       0.9485 |              |          0.0010 |
+|       3 |         400 |       00:00:33 |      100.00% |       88.49% |       0.1809 |       0.7835 |          0.0010 |
+|       3 |         410 |       00:00:34 |       87.50% |              |       0.4024 |              |          0.0010 |
+|       3 |         420 |       00:00:35 |      100.00% |              |       0.3076 |              |          0.0010 |
+|       3 |         430 |       00:00:35 |       87.50% |              |       0.3453 |              |          0.0010 |
+|       3 |         440 |       00:00:36 |      100.00% |              |       0.2143 |              |          0.0010 |
+|       3 |         450 |       00:00:36 |       87.50% |              |       0.6772 |              |          0.0010 |
+|       3 |         460 |       00:00:37 |      100.00% |              |       0.2551 |              |          0.0010 |
+|       3 |         470 |       00:00:37 |      100.00% |              |       0.1681 |              |          0.0010 |
+|       3 |         480 |       00:00:38 |      100.00% |              |       0.2546 |              |          0.0010 |
+|       3 |         490 |       00:00:38 |      100.00% |              |       0.1413 |              |          0.0010 |
+|       3 |         500 |       00:00:41 |      100.00% |       92.53% |       0.1336 |       0.4951 |          0.0010 |
+|       3 |         510 |       00:00:42 |      100.00% |              |       0.1395 |              |          0.0010 |
+|       3 |         520 |       00:00:42 |      100.00% |              |       0.2144 |              |          0.0010 |
+|       3 |         530 |       00:00:43 |      100.00% |              |       0.2075 |              |          0.0010 |
+|       3 |         540 |       00:00:43 |      100.00% |              |       0.4092 |              |          0.0010 |
+|       3 |         550 |       00:00:44 |      100.00% |              |       0.0934 |              |          0.0010 |
+|       3 |         560 |       00:00:44 |       87.50% |              |       0.4749 |              |          0.0010 |
+|       3 |         570 |       00:00:45 |      100.00% |              |       0.2698 |              |          0.0010 |
+|       3 |         580 |       00:00:46 |      100.00% |              |       0.1043 |              |          0.0010 |
+|       4 |         590 |       00:00:46 |      100.00% |              |       0.0500 |              |          0.0010 |
+|       4 |         600 |       00:00:49 |      100.00% |       94.62% |       0.1322 |       0.3719 |          0.0010 |
+|       4 |         610 |       00:00:49 |      100.00% |              |       0.0796 |              |          0.0010 |
+|       4 |         620 |       00:00:50 |      100.00% |              |       0.0422 |              |          0.0010 |
+|       4 |         630 |       00:00:51 |      100.00% |              |       0.0465 |              |          0.0010 |
+|       4 |         640 |       00:00:51 |      100.00% |              |       0.1073 |              |          0.0010 |
+|       4 |         650 |       00:00:52 |      100.00% |              |       0.0864 |              |          0.0010 |
+|       4 |         660 |       00:00:52 |      100.00% |              |       0.0609 |              |          0.0010 |
+|       4 |         670 |       00:00:53 |      100.00% |              |       0.0362 |              |          0.0010 |
+|       4 |         680 |       00:00:53 |      100.00% |              |       0.1097 |              |          0.0010 |
+|       4 |         690 |       00:00:54 |      100.00% |              |       0.0431 |              |          0.0010 |
+|       4 |         700 |       00:00:57 |      100.00% |       96.11% |       0.1292 |       0.3068 |          0.0010 |
+|       4 |         710 |       00:00:57 |      100.00% |              |       0.2903 |              |          0.0010 |
+|       4 |         720 |       00:00:58 |      100.00% |              |       0.0752 |              |          0.0010 |
+|       4 |         730 |       00:00:58 |      100.00% |              |       0.0710 |              |          0.0010 |
+|       4 |         740 |       00:00:59 |      100.00% |              |       0.0303 |              |          0.0010 |
+|       4 |         750 |       00:00:59 |      100.00% |              |       0.1041 |              |          0.0010 |
+|       4 |         760 |       00:01:00 |      100.00% |              |       0.0319 |              |          0.0010 |
+|       4 |         770 |       00:01:01 |      100.00% |              |       0.0803 |              |          0.0010 |
+|       4 |         780 |       00:01:01 |      100.00% |              |       0.0749 |              |          0.0010 |
+|       5 |         790 |       00:01:02 |      100.00% |              |       0.0754 |              |          0.0010 |
+|       5 |         800 |       00:01:04 |      100.00% |       95.67% |       0.0404 |       0.2857 |          0.0010 |
+|       5 |         810 |       00:01:05 |      100.00% |              |       0.0257 |              |          0.0010 |
+|       5 |         820 |       00:01:06 |      100.00% |              |       0.0372 |              |          0.0010 |
+|       5 |         830 |       00:01:06 |      100.00% |              |       0.0355 |              |          0.0010 |
+|       5 |         840 |       00:01:07 |      100.00% |              |       0.0382 |              |          0.0010 |
+|       5 |         850 |       00:01:07 |      100.00% |              |       0.0424 |              |          0.0010 |
+|       5 |         860 |       00:01:08 |      100.00% |              |       0.0687 |              |          0.0010 |
+|       5 |         870 |       00:01:09 |      100.00% |              |       0.0443 |              |          0.0010 |
+|       5 |         880 |       00:01:09 |      100.00% |              |       0.1979 |              |          0.0010 |
+|       5 |         890 |       00:01:10 |      100.00% |              |       0.0417 |              |          0.0010 |
+|       5 |         900 |       00:01:13 |      100.00% |       94.62% |       0.0210 |       0.2786 |          0.0010 |
+|       5 |         910 |       00:01:13 |      100.00% |              |       0.0505 |              |          0.0010 |
+|       5 |         920 |       00:01:14 |      100.00% |              |       0.0282 |              |          0.0010 |
+|       5 |         930 |       00:01:14 |      100.00% |              |       0.0295 |              |          0.0010 |
+|       5 |         940 |       00:01:15 |      100.00% |              |       0.0258 |              |          0.0010 |
+|       5 |         950 |       00:01:15 |      100.00% |              |       0.0389 |              |          0.0010 |
+|       5 |         960 |       00:01:16 |      100.00% |              |       0.0142 |              |          0.0010 |
+|       5 |         970 |       00:01:17 |      100.00% |              |       0.0155 |              |          0.0010 |
+|       6 |         980 |       00:01:17 |      100.00% |              |       0.0141 |              |          0.0010 |
+|       6 |         990 |       00:01:18 |      100.00% |              |       0.0312 |              |          0.0010 |
+|       6 |        1000 |       00:01:20 |      100.00% |       96.56% |       0.0255 |       0.2428 |          0.0010 |
+|       6 |        1010 |       00:01:21 |      100.00% |              |       0.0155 |              |          0.0010 |
+|       6 |        1020 |       00:01:22 |      100.00% |              |       0.0354 |              |          0.0010 |
+|       6 |        1030 |       00:01:22 |      100.00% |              |       0.0241 |              |          0.0010 |
+|       6 |        1040 |       00:01:23 |      100.00% |              |       0.0236 |              |          0.0010 |
+|       6 |        1050 |       00:01:23 |      100.00% |              |       0.0201 |              |          0.0010 |
+|       6 |        1060 |       00:01:24 |      100.00% |              |       0.0248 |              |          0.0010 |
+|       6 |        1070 |       00:01:24 |      100.00% |              |       0.0218 |              |          0.0010 |
+|       6 |        1080 |       00:01:25 |      100.00% |              |       0.0251 |              |          0.0010 |
+|       6 |        1090 |       00:01:25 |      100.00% |              |       0.0212 |              |          0.0010 |
+|       6 |        1100 |       00:01:28 |      100.00% |       96.86% |       0.0173 |       0.2389 |          0.0010 |
+|       6 |        1110 |       00:01:29 |      100.00% |              |       0.0241 |              |          0.0010 |
+|       6 |        1120 |       00:01:29 |      100.00% |              |       0.0191 |              |          0.0010 |
+|       6 |        1130 |       00:01:30 |      100.00% |              |       0.0258 |              |          0.0010 |
+|       6 |        1140 |       00:01:30 |      100.00% |              |       0.0197 |              |          0.0010 |
+|       6 |        1150 |       00:01:31 |      100.00% |              |       0.0456 |              |          0.0010 |
+|       6 |        1160 |       00:01:32 |      100.00% |              |       0.1283 |              |          0.0010 |
+|       6 |        1170 |       00:01:32 |      100.00% |              |       0.0205 |              |          0.0010 |
+|       7 |        1180 |       00:01:33 |      100.00% |              |       0.0217 |              |          0.0010 |
+|       7 |        1190 |       00:01:33 |      100.00% |              |       0.0347 |              |          0.0010 |
+|       7 |        1200 |       00:01:36 |      100.00% |       95.81% |       0.0435 |       0.2334 |          0.0010 |
+|       7 |        1210 |       00:01:36 |      100.00% |              |       0.0156 |              |          0.0010 |
+|       7 |        1220 |       00:01:37 |      100.00% |              |       0.0133 |              |          0.0010 |
+|       7 |        1230 |       00:01:38 |      100.00% |              |       0.0258 |              |          0.0010 |
+|       7 |        1240 |       00:01:38 |      100.00% |              |       0.0253 |              |          0.0010 |
+|       7 |        1250 |       00:01:39 |      100.00% |              |       0.0067 |              |          0.0010 |
+|       7 |        1260 |       00:01:39 |      100.00% |              |       0.0646 |              |          0.0010 |
+|       7 |        1270 |       00:01:40 |      100.00% |              |       0.0191 |              |          0.0010 |
+|       7 |        1280 |       00:01:40 |      100.00% |              |       0.0205 |              |          0.0010 |
+|       7 |        1290 |       00:01:41 |      100.00% |              |       0.0120 |              |          0.0010 |
+|       7 |        1300 |       00:01:44 |      100.00% |       96.41% |       0.0203 |       0.2224 |          0.0010 |
+|       7 |        1310 |       00:01:44 |      100.00% |              |       0.0135 |              |          0.0010 |
+|       7 |        1320 |       00:01:45 |      100.00% |              |       0.0171 |              |          0.0010 |
+|       7 |        1330 |       00:01:45 |      100.00% |              |       0.0231 |              |          0.0010 |
+|       7 |        1340 |       00:01:46 |      100.00% |              |       0.0169 |              |          0.0010 |
+|       7 |        1350 |       00:01:46 |      100.00% |              |       0.0097 |              |          0.0010 |
+|       7 |        1360 |       00:01:47 |      100.00% |              |       0.0185 |              |          0.0010 |
+|       8 |        1370 |       00:01:48 |      100.00% |              |       0.0137 |              |          0.0010 |
+|       8 |        1380 |       00:01:48 |      100.00% |              |       0.0538 |              |          0.0010 |
+|       8 |        1390 |       00:01:49 |      100.00% |              |       0.0241 |              |          0.0010 |
+|       8 |        1400 |       00:01:51 |      100.00% |       96.41% |       0.0141 |       0.2106 |          0.0010 |
+|       8 |        1410 |       00:01:52 |      100.00% |              |       0.0095 |              |          0.0010 |
+|       8 |        1420 |       00:01:53 |      100.00% |              |       0.0203 |              |          0.0010 |
+|       8 |        1430 |       00:01:53 |      100.00% |              |       0.0115 |              |          0.0010 |
+|       8 |        1440 |       00:01:54 |      100.00% |              |       0.0139 |              |          0.0010 |
+|       8 |        1450 |       00:01:54 |      100.00% |              |       0.0322 |              |          0.0010 |
+|       8 |        1460 |       00:01:55 |      100.00% |              |       0.0148 |              |          0.0010 |
+|       8 |        1470 |       00:01:55 |      100.00% |              |       0.0091 |              |          0.0010 |
+|       8 |        1480 |       00:01:56 |      100.00% |              |       0.0359 |              |          0.0010 |
+|       8 |        1490 |       00:01:56 |      100.00% |              |       0.0132 |              |          0.0010 |
+|       8 |        1500 |       00:01:59 |      100.00% |       96.56% |       0.0192 |       0.2083 |          0.0010 |
+|       8 |        1510 |       00:02:00 |      100.00% |              |       0.0090 |              |          0.0010 |
+|       8 |        1520 |       00:02:00 |      100.00% |              |       0.0212 |              |          0.0010 |
+|       8 |        1530 |       00:02:01 |      100.00% |              |       0.0246 |              |          0.0010 |
+|       8 |        1540 |       00:02:01 |      100.00% |              |       0.0093 |              |          0.0010 |
+|       8 |        1550 |       00:02:02 |      100.00% |              |       0.0857 |              |          0.0010 |
+|       8 |        1560 |       00:02:02 |      100.00% |              |       0.0233 |              |          0.0010 |
+|       9 |        1570 |       00:02:03 |      100.00% |              |       0.0275 |              |          0.0010 |
+|       9 |        1580 |       00:02:04 |      100.00% |              |       0.0077 |              |          0.0010 |
+|       9 |        1590 |       00:02:04 |      100.00% |              |       0.0163 |              |          0.0010 |
+|       9 |        1600 |       00:02:07 |      100.00% |       96.26% |       0.0236 |       0.2198 |          0.0010 |
+|       9 |        1610 |       00:02:07 |      100.00% |              |       0.0070 |              |          0.0010 |
+|       9 |        1620 |       00:02:08 |      100.00% |              |       0.0092 |              |          0.0010 |
+|       9 |        1630 |       00:02:09 |      100.00% |              |       0.0145 |              |          0.0010 |
+|       9 |        1640 |       00:02:09 |      100.00% |              |       0.0098 |              |          0.0010 |
+|       9 |        1650 |       00:02:10 |      100.00% |              |       0.0251 |              |          0.0010 |
+|       9 |        1660 |       00:02:10 |      100.00% |              |       0.0131 |              |          0.0010 |
+|       9 |        1670 |       00:02:11 |      100.00% |              |       0.0100 |              |          0.0010 |
+|       9 |        1680 |       00:02:11 |      100.00% |              |       0.0363 |              |          0.0010 |
+|       9 |        1690 |       00:02:12 |      100.00% |              |       0.0190 |              |          0.0010 |
+|       9 |        1700 |       00:02:15 |      100.00% |       96.56% |       0.0112 |       0.2024 |          0.0010 |
+|       9 |        1710 |       00:02:15 |      100.00% |              |       0.0141 |              |          0.0010 |
+|       9 |        1720 |       00:02:16 |      100.00% |              |       0.0072 |              |          0.0010 |
+|       9 |        1730 |       00:02:16 |      100.00% |              |       0.0065 |              |          0.0010 |
+|       9 |        1740 |       00:02:17 |      100.00% |              |       0.1040 |              |          0.0010 |
+|       9 |        1750 |       00:02:17 |      100.00% |              |       0.0130 |              |          0.0010 |
+|      10 |        1760 |       00:02:18 |      100.00% |              |       0.0084 |              |          0.0010 |
+|      10 |        1770 |       00:02:18 |      100.00% |              |       0.0077 |              |          0.0010 |
+|      10 |        1780 |       00:02:19 |      100.00% |              |       0.0169 |              |          0.0010 |
+|      10 |        1790 |       00:02:20 |      100.00% |              |       0.0034 |              |          0.0010 |
+|      10 |        1800 |       00:02:22 |      100.00% |       96.56% |       0.0123 |       0.2023 |          0.0010 |
+|      10 |        1810 |       00:02:23 |      100.00% |              |       0.0092 |              |          0.0010 |
+|      10 |        1820 |       00:02:23 |      100.00% |              |       0.0098 |              |          0.0010 |
+|      10 |        1830 |       00:02:24 |      100.00% |              |       0.0116 |              |          0.0010 |
+|      10 |        1840 |       00:02:25 |      100.00% |              |       0.0125 |              |          0.0010 |
+|      10 |        1850 |       00:02:25 |      100.00% |              |       0.0105 |              |          0.0010 |
+|      10 |        1860 |       00:02:26 |      100.00% |              |       0.0269 |              |          0.0010 |
+|      10 |        1870 |       00:02:26 |      100.00% |              |       0.0110 |              |          0.0010 |
+|      10 |        1880 |       00:02:27 |      100.00% |              |       0.0070 |              |          0.0010 |
+|      10 |        1890 |       00:02:27 |      100.00% |              |       0.0139 |              |          0.0010 |
+|      10 |        1900 |       00:02:30 |      100.00% |       97.01% |       0.0098 |       0.1941 |          0.0010 |
+|      10 |        1910 |       00:02:31 |      100.00% |              |       0.0241 |              |          0.0010 |
+|      10 |        1920 |       00:02:31 |      100.00% |              |       0.1040 |              |          0.0010 |
+|      10 |        1930 |       00:02:32 |      100.00% |              |       0.0153 |              |          0.0010 |
+|      10 |        1940 |       00:02:32 |      100.00% |              |       0.0163 |              |          0.0010 |
+|      10 |        1950 |       00:02:35 |      100.00% |       96.71% |       0.0104 |       0.2048 |          0.0010 |
+|======================================================================================================================|
+</pre><h2 id="9">Classify validation</h2><pre class="codeinput">    labels = classify(net_Wael,imdsValidation);
+</pre><h2 id="10">Compute Accuracy</h2><pre class="codeinput">    YValidation = imdsValidation.Labels;
+    accuracy02 = sum(labels == YValidation)/numel(YValidation)*100;
+    dis=[<span class="string">'The final accuracy rate is: '</span>, num2str(accuracy02,<span class="string">'%2.2f'</span>), <span class="string">'%'</span>];
+    disp(dis);
+diary <span class="string">off</span>
+</pre><pre class="codeoutput">The final accuracy rate is: 96.86%
+</pre><h2 id="11">move diary file</h2><pre class="codeinput">movefile(<span class="string">'Progress.txt'</span>,<span class="string">'results'</span>)
+</pre><h2 id="12"><b>Test one at a time</b></h2><pre class="codeinput">true=0;
+false=0;
+    <span class="keyword">for</span> i = 1:size(imdsValidation.Files,1)
+            <span class="keyword">if</span> labels(i) == imdsValidation.Labels(i)
+               true=true+1;
+            <span class="keyword">else</span>
+                false=false+1;
+            <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="13">Find the square root of the false matches to determine the subplots</h2><pre class="codeinput">    f0=floor(sqrt(false));
+    <span class="keyword">if</span> f0 == sqrt(false)
+        f1=f0;
+    <span class="keyword">else</span>
+        f1=f0+1;
+    <span class="keyword">end</span>
+</pre><h2 id="14">Recalbirating true and false</h2><pre class="codeinput">    true=0;
+    false=0;
+</pre><h2 id="15">start plotting mismatches</h2><pre class="codeinput">    falsefig= figure(<span class="string">'Name'</span>,<span class="string">'All Mismatch Pictures'</span>,<span class="string">'Visible'</span>,<span class="string">'off'</span>,<span class="string">'Units'</span>, <span class="string">'Normalized'</span>, <span class="string">'OuterPosition'</span>, [0, 0.04, 1, 0.96])
+
+    <span class="keyword">for</span> i = 1:size(imdsValidation.Files,1)
+        imf = imread(imdsValidation.Files{i});
+        <span class="keyword">if</span> labels(i) ~= imdsValidation.Labels(i)
+
+            colorText = <span class="string">'r'</span>;
+            false=false+1;
+            <span class="keyword">if</span> false &gt; f0*f1
+                    <span class="keyword">break</span>
+            <span class="keyword">else</span>
+            subplot(f1,f0,false);
+                                    imshow(imf);
+
+            title(char(labels(i)),<span class="string">'Color'</span>,colorText);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    xlabel(<span class="string">'ALL mismatch incidents'</span>)
+    saveas(falsefig,<span class="string">'All Mismatches.png'</span>)
+    movefile(<span class="string">'All Mismatches.png'</span>,<span class="string">'results'</span>)
+</pre><pre class="codeoutput">
+falsefig = 
+
+  Figure (1: All Mismatch Pictures) with properties:
+
+      Number: 1
+        Name: 'All Mismatch Pictures'
+       Color: [0.9400 0.9400 0.9400]
+    Position: [0.0026 0.0444 0.9948 0.9324]
+       Units: 'normalized'
+
+  Use GET to show all properties
+
+</pre><h2 id="16">start plotting sample of correct match</h2><pre class="codeinput">    truefig= figure(<span class="string">'Name'</span>,<span class="string">'Sample of Correct Match'</span>,<span class="string">'Visible'</span>,<span class="string">'off'</span>,<span class="string">'Units'</span>, <span class="string">'Normalized'</span>, <span class="string">'OuterPosition'</span>, [0, 0.04, 1, 0.96])
+
+    true=0;
+    false=0;
+        <span class="keyword">for</span> i = 1:size(imdsValidation.Files,1)
+            ii = randi(size(imdsValidation.Files,1));
+            imt = imread(imdsValidation.Files{ii});
+            <span class="keyword">if</span> labels(ii) == imdsValidation.Labels(ii)
+               colorText = <span class="string">'g'</span>;
+               true=true+1;
+               <span class="keyword">if</span> true &gt; f0*f1
+                    <span class="keyword">break</span>
+               <span class="keyword">else</span>
+                       subplot(f1,f0,true);
+                        imshow(imt);
+                       title(char(labels(ii)),<span class="string">'Color'</span>,colorText);
+               <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+        xlabel(<span class="string">'Sample of Correct Incidents'</span>)
+        saveas(truefig,<span class="string">'Sample Matches.png'</span>)
+        movefile(<span class="string">'Sample Matches.png'</span>,<span class="string">'results'</span>)
+</pre><pre class="codeoutput">
+truefig = 
+
+  Figure (2: Sample of Correct Match) with properties:
+
+      Number: 2
+        Name: 'Sample of Correct Match'
+       Color: [0.9400 0.9400 0.9400]
+    Position: [0.0026 0.0444 0.9948 0.9324]
+       Units: 'normalized'
+
+  Use GET to show all properties
+
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%   Biometric Systems
+%   CYS616
+%   CONVOLUTIONAL NEURAL NETWORK FOR IRIS RECOGNITION
+clc;    % Clear the command window.
+close all;  % Close all figures (except those of imtool.)
+clear;  % Erase all existing variables. Or clearvars if you want.
+workspace;  % Make sure the workspace panel is showing.
+reset(gpuDevice);  % Reset GPU memory
+diary Progress.txt
+diary on
+%% Load train Data
+categories = {
+'001','002','003','004','005','006','007','008','009','010', ...
+'011','012','013','014','015','016','017','018','019','020', ...
+'021','022','023','024','025','026','027','028','029','030', ...
+'031','032','033','034','035','036','037','038','039','040', ...
+'041','042','043','044','045','046','047','048','049','050', ...
+'051','052','053','054','055','056','057','058','059','060', ...
+'061','062','063','064','065','066','067','068','069','070', ...
+'071','072','073','074','075','076','077','078','079','080', ...
+'081','082','083','084','085','086','087','088','089','090', ...
+'091','092','093','094','095','096','097','098','099','100', ...
+'101','102','103','104','105','106','107','108','109','110', ...
+'111','112','113','114','115','116','117','118','119','120', ...
+'121','122','123','124','125','126','127','128','129','130', ...
+'131','132','133','134','135','136','137','138','139','140', ...
+'141','142','143','144','145','146','147','148','149','150', ...
+'151','152','153','154','155','156','157','158','159','160', ...
+'161','162','163','164','165','166','167','168','169','170', ...
+'171','172','173','174','175','176','177','178','179','180', ...
+'181','182','183','184','185','186','187','188','189','190', ...
+'191','192','193','194','195','196','197','198','199','200', ...
+'201','202','203','204','205','206','207','208','209','210', ...
+'211','212','213','214','215','216','217','218','219','220', ...
+'221','222','223'};
+
+    imdsTrain = imageDatastore(fullfile(pwd,'Dataset/TrainData', categories),'IncludeSubfolders',true,'FileExtensions','.bmp','LabelSource','foldernames');
+num_train = size(imdsTrain.Files,1);
+
+%% Size of first image in dataset
+    img = readimage(imdsTrain,1);
+    [x , y , z] = size(img);
+
+%% Load Test Data
+    imdsValidation = imageDatastore(fullfile(pwd,'Dataset/TestData', categories),'IncludeSubfolders',true,'FileExtensions','.bmp','LabelSource','foldernames');
+num_test = size(imdsValidation.Files,1);
+%% Calculate the number of images in each category. 
+    labelCount = countEachLabel(imdsTrain);
+
+    %% Define Network Architecture
+    layers = [
+ 
+    imageInputLayer([x y z]);  
+ 
+    convolution2dLayer(3,8,'Padding','same')
+    batchNormalizationLayer
+    reluLayer(); 
+ 
+    maxPooling2dLayer(5,'Stride',2)
+    convolution2dLayer(3,16,'Padding','same')
+    batchNormalizationLayer
+    reluLayer();
+ 
+         averagePooling2dLayer(5,'Stride',2)
+    convolution2dLayer(3,16,'Padding','same')
+    batchNormalizationLayer
+    reluLayer();
+    
+    maxPooling2dLayer(5,'Stride',2)
+    convolution2dLayer(3,32,'Padding','same')
+    batchNormalizationLayer
+    reluLayer();
+ 
+         averagePooling2dLayer(5,'Stride',2)
+    convolution2dLayer(3,32,'Padding','same')
+    batchNormalizationLayer
+    reluLayer();
+ 
+ 
+    fullyConnectedLayer(size(categories,2),'BiasLearnRateFactor',2);
+    softmaxLayer
+    classificationLayer];
+ 
+    %% Specify Training Options
+    options = trainingOptions('sgdm', ...
+    'InitialLearnRate', 0.001, ...
+    'ValidationData',imdsValidation, ...
+    'ValidationFrequency',100, ...
+    'Shuffle','every-epoch', ...
+    'MaxEpochs', 10, ...
+    'MiniBatchSize', 8, ...
+    'LearnRateSchedule','piecewise', ...
+    'LearnRateDropFactor',0.5, ...
+    'LearnRateDropPeriod',50, ...
+    'ExecutionEnvironment','gpu', ...
+    'Verbose', true, 'VerboseFrequency', 10);
+
+%% Train Network Using Training Data
+    [net_Wael, info] = trainNetwork(imdsTrain,layers,options);
+save('TrainedNetwork.mat','net_Wael')
+movefile('TrainedNetwork.mat','results')
+
+
+    %% Classify validation
+    labels = classify(net_Wael,imdsValidation);
+    %% Compute Accuracy
+    YValidation = imdsValidation.Labels;
+    accuracy02 = sum(labels == YValidation)/numel(YValidation)*100;
+    dis=['The final accuracy rate is: ', num2str(accuracy02,'%2.2f'), '%'];
+    disp(dis);
+diary off
+%%  move diary file
+movefile('Progress.txt','results')
+        %% *Test one at a time*
+true=0;
+false=0;
+    for i = 1:size(imdsValidation.Files,1)
+            if labels(i) == imdsValidation.Labels(i)
+               true=true+1;
+            else
+                false=false+1;  
+            end
+    end
+
+    %% Find the square root of the false matches to determine the subplots
+
+    f0=floor(sqrt(false));
+    if f0 == sqrt(false)
+        f1=f0;
+    else
+        f1=f0+1;
+    end
+
+   %% Recalbirating true and false
+    true=0;
+    false=0;
+
+  %%  start plotting mismatches
+    falsefig= figure('Name','All Mismatch Pictures','Visible','off','Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96])
+
+    for i = 1:size(imdsValidation.Files,1)
+        imf = imread(imdsValidation.Files{i});
+        if labels(i) ~= imdsValidation.Labels(i)
+            
+            colorText = 'r';
+            false=false+1;  
+            if false > f0*f1
+                    break     
+            else 
+            subplot(f1,f0,false);
+                                    imshow(imf);
+
+            title(char(labels(i)),'Color',colorText);
+            end
+        end
+    end
+    
+    xlabel('ALL mismatch incidents')
+    saveas(falsefig,'All Mismatches.png')
+    movefile('All Mismatches.png','results')
+ %%   start plotting sample of correct match
+    truefig= figure('Name','Sample of Correct Match','Visible','off','Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96])
+    
+    true=0;
+    false=0;
+        for i = 1:size(imdsValidation.Files,1)
+            ii = randi(size(imdsValidation.Files,1));
+            imt = imread(imdsValidation.Files{ii});
+            if labels(ii) == imdsValidation.Labels(ii)
+               colorText = 'g'; 
+               true=true+1;
+               if true > f0*f1
+                    break    
+               else 
+                       subplot(f1,f0,true);
+                        imshow(imt);
+                       title(char(labels(ii)),'Color',colorText);
+               end
+            end
+        end
+        xlabel('Sample of Correct Incidents')
+        saveas(truefig,'Sample Matches.png')
+        movefile('Sample Matches.png','results')
+
+
+
+##### SOURCE END #####
+--></body></html>
